@@ -22,10 +22,22 @@ public class BasicCommands {
     // SQLite STATEMENTS - do operacji na danych (bez kropki, zakończone średnikiem):
 
     // 1) CREATE table [nazwa_tabeli] ([nagłówek] text, [nagłówek] integer);
+    //    np. CREATE table artists (_id INTEGER PRIMARY KEY, name TEXT NOT NULL);
     // 2) INSERT INTO [nazwa_tabeli] VALUES('[...]', [...]);
     //    lub
-    // INSERT INTO [nazwa_tabeli] ([nagłówek] text, [nagłówek] integer) VALUES('[...]', [...]);
+    //    INSERT INTO [nazwa_tabeli] ([nagłówek] text, [nagłówek] integer) VALUES('[...]', [...]);
     // 3) SELECT * FROM [nazwa_tabeli] WHERE [nagłówek][warunek];
     // 4) UPDATE [nazwa_tabeli] SET [nagłówek][wartość] WHERE [nagłówek][warunek];
     // 5) DELETE FROM [nazwa_tabeli] WHERE [nagłówek][warunek];
+    // 6) ORDER BY [nagłówek] (ASC/DESC) -> 'ascending' jest domyślne
+    //    ORDER BY [nagłówek] COLLATE NOCASE -> ignoruje wielkość liter
+    //    ORDER BY -> może przyjmować wiele parametrów, np. ORDER BY artist, name;
+
+
+    public static void main(String[] args) {
+
+        // MINI-CHALLENGE 1:
+        // Find the title of album 367 in music.db
+        // SELECT name FROM albums WHERE _id=367;
+    }
 }
