@@ -39,5 +39,9 @@ public class BasicCommands {
         // MINI-CHALLENGE 1:
         // Find the title of album 367 in music.db
         // SELECT name FROM albums WHERE _id=367;
+
+        // MINI-CHALLENGE 2:
+        // List all songs so that the songs from the same album appear together in track order
+        // SELECT * FROM songs ORDER BY album, track;
     }
 }
