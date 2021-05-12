@@ -32,6 +32,10 @@ public class BasicCommands {
     // 6) ORDER BY [nagłówek] (ASC/DESC) -> 'ascending' jest domyślne
     //    ORDER BY [nagłówek] COLLATE NOCASE -> ignoruje wielkość liter
     //    ORDER BY -> może przyjmować wiele parametrów, np. ORDER BY artist, name;
+    // 7) WHERE [nagłówek] <> [wartość] -> nagłówek nie jest równy podanej wartości
+
+    // SELECT przyjmuje też funkcje, np:
+    // SELECT count (*) FROM songs;
 
 
     public static void main(String[] args) {
