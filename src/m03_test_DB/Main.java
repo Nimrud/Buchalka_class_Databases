@@ -1,9 +1,6 @@
 package m03_test_DB;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 
 public class Main {
     public static void main(String[] args) {
@@ -23,6 +20,22 @@ public class Main {
                 "jdbc:sqlite:/home/krzysztof/workspace/Buchalka/Databases/src/m03_test_DB/test01.db");
              Statement statement = conn.createStatement()) {
             statement.execute("CREATE TABLE IF NOT EXISTS contacts (name TEXT, phone INTEGER , email TEXT)");
+            statement.execute("INSERT INTO contacts (name, phone, email) " +
+                                    "VALUES ('Bob', 456789, 'bob@rock.com')");
+            statement.execute("INSERT INTO contacts (name, phone, email) " +
+                    "VALUES ('Anna', 4466655, 'anna@gmail.com')");
+            statement.execute("INSERT INTO contacts (name, phone, email) " +
+                    "VALUES ('Mike', 1258741, 'mickey@op.com')");
+
+            statement.execute("SELECT * FROM contacts");
+            ResultSet results = statement.getResultSet();
+            while (results.next()){
+                System.out.println(results.getString("name") + " " +
+                                    results.getInt("phone") + " " +
+                                    results.getString("email"));
+            }
+            results.close();
+
         } catch (SQLException e) {
             System.out.println("Something went wrong: " + e.getMessage());
         }
