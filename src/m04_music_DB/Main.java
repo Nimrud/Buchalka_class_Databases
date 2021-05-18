@@ -13,7 +13,7 @@ public class Main {
             return;
         }
 
-        List<Artist> artists = dataSource.queryArtist();
+        List<Artist> artists = dataSource.queryArtist(DataSource.ORDER_BY_ASC);
         if (artists == null) {
             System.out.println("No artists found!");
             return;
