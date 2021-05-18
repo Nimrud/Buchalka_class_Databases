@@ -14,15 +14,28 @@ public class DataSource {
     public static final String COLUMN_SONGS_TRACK = "track";
     public static final String COLUMN_SONGS_TITLE = "title";
     public static final String COLUMN_SONGS_ALBUM = "album";
+    public static final int INDEX_SONGS_ID = 1;    // Indeksy zaczynają się od 1 (!)
+    public static final int INDEX_SONGS_TRACK = 2;
+    public static final int INDEX_SONGS_TITLE = 3;
+    public static final int INDEX_SONGS_ALBUM = 4;
 
     public static final String TABLE_ALBUMS = "albums";
     public static final String COLUMN_ALBUMS_ID = "_id";
     public static final String COLUMN_ALBUMS_NAME = "name";
     public static final String COLUMN_ALBUMS_ARTIST = "artist";
+    public static final int INDEX_ALBUMS_ID = 1;
+    public static final int INDEX_ALBUMS_NAME = 2;
+    public static final int INDEX_ALBUMS_ARTIST = 3;
 
     public static final String TABLE_ARTISTS = "artists";
     public static final String COLUMN_ARTISTS_ID = "_id";
     public static final String COLUMN_ARTISTS_NAME = "name";
+    public static final int INDEX_ARTISTS_ID = 1;
+    public static final int INDEX_ARTISTS_NAME = 2;
+
+    public static final int ORDER_BY_NONE = 1;
+    public static final int ORDER_BY_ASC = 2;
+    public static final int ORDER_BY_DESC = 3;
 
     private  Connection conn;
 
@@ -47,19 +60,34 @@ public class DataSource {
     }
 
     // Metoda bez wykorzystania try-with-resources:
-    public List<Artist> queryArtist(){
+    public List<Artist> queryArtist(int sortOrder){
+
+        StringBuilder sb = new StringBuilder("SELECT * FROM ");
+        sb.append(TABLE_ARTISTS);
+        if (sortOrder != ORDER_BY_NONE) {
+            sb.append(" ORDER BY ");
+            sb.append(COLUMN_ARTISTS_NAME);
+            sb.append(" COLLATE NOCASE");
+            if (sortOrder == ORDER_BY_ASC) {
+                sb.append(" ASC");
+            } else {
+                sb.append(" DESC");
+            }
+        }
+
         Statement statement = null;
         ResultSet rs = null;
 
         try {
             statement = conn.createStatement();
-            rs = statement.executeQuery("SELECT * FROM " + TABLE_ARTISTS);
+            rs = statement.executeQuery(sb.toString());
 
             List<Artist> artists = new ArrayList<>();
             while (rs.next()){
                 Artist artist = new Artist();
-                artist.setId(rs.getInt(COLUMN_ARTISTS_ID));
-                artist.setName(rs.getString(COLUMN_ARTISTS_NAME));
+                artist.setId(rs.getInt(INDEX_ARTISTS_ID));    // wykorzystanie indeksów kolumn jest wydajniejsze
+                //artist.setId(rs.getInt(COLUMN_ARTISTS_ID));
+                artist.setName(rs.getString(INDEX_ARTISTS_NAME));
                 artists.add(artist);
             }
             return artists;
