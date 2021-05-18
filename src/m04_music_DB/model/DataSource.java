@@ -1,9 +1,8 @@
 package m04_music_DB.model;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DataSource {
     public static final String DB_NAME = "music.db";
@@ -44,6 +43,45 @@ public class DataSource {
             }
         } catch (SQLException e) {
             System.out.println("Couldn't close the connection: " + e.getMessage());
+        }
+    }
+
+    // Metoda bez wykorzystania try-with-resources:
+    public List<Artist> queryArtist(){
+        Statement statement = null;
+        ResultSet rs = null;
+
+        try {
+            statement = conn.createStatement();
+            rs = statement.executeQuery("SELECT * FROM " + TABLE_ARTISTS);
+
+            List<Artist> artists = new ArrayList<>();
+            while (rs.next()){
+                Artist artist = new Artist();
+                artist.setId(rs.getInt(COLUMN_ARTISTS_ID));
+                artist.setName(rs.getString(COLUMN_ARTISTS_NAME));
+                artists.add(artist);
+            }
+            return artists;
+
+        } catch (SQLException e){
+            System.out.println("Couldn't get information: " + e.getMessage());
+            return null;
+        } finally {
+            try {
+                if (rs != null){
+                    rs.close();
+                }
+            } catch (SQLException e) {
+                System.out.println("Error while closing ResultSet: " + e.getMessage());;
+            }
+            try {
+                if (statement != null) {
+                    statement.close();
+                }
+            } catch (SQLException e){
+                System.out.println("Couldn't close the statement: " + e.getMessage());
+            }
         }
     }
 }
