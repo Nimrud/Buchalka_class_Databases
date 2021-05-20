@@ -200,4 +200,22 @@ public class DataSource {
             return null;
         }
     }
+
+    // Pozyskiwanie wiadomości o tabelach z bazy danych za pomocą metadanych:
+    public void querySongsMetaData() {
+        String sql = "SELECT * FROM " + TABLE_SONGS;
+
+        try (Statement statement = conn.createStatement();
+            ResultSet rs = statement.executeQuery(sql)) {
+
+            ResultSetMetaData meta = rs.getMetaData();   // pozyskuje informacje podobnie jak .schema
+            int numColumns = meta.getColumnCount();
+            for (int i = 1; i <= numColumns; i++) {       // pierwsza kolumna znajduje się pod pozycją 1, nie 0!
+                System.out.format("Column %d in the Songs Table is named %s\n",
+                        i, meta.getColumnName(i));
+            }
+        } catch (SQLException e) {
+            System.out.println("Query failed: " + e.getMessage());
+        }
+    }
 }
