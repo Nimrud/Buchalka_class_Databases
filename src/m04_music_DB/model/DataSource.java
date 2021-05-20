@@ -45,6 +45,20 @@ public class DataSource {
     public static final String QUERY_ALBUMS_BY_ARTIST_SORT =
             " ORDER BY " + TABLE_ALBUMS + "." + COLUMN_ALBUMS_NAME + " COLLATE NOCASE ";
 
+    public static final String QUERY_ARTISTS_BY_SONG_NAME_START =
+            "SELECT " + TABLE_ARTISTS + "." + COLUMN_ARTISTS_NAME + ", " +
+                    TABLE_ALBUMS + "." + COLUMN_ALBUMS_NAME + ", " +
+                    TABLE_SONGS + "." + COLUMN_SONGS_TRACK +
+                    " FROM " + TABLE_ARTISTS +
+                    " INNER JOIN " + TABLE_ALBUMS + " ON " +
+                    TABLE_ALBUMS + "." + COLUMN_ALBUMS_ARTIST + " = " + TABLE_ARTISTS + "." + COLUMN_ARTISTS_ID +
+                    " INNER JOIN " + TABLE_SONGS + " ON " +
+                    TABLE_SONGS + "." + COLUMN_SONGS_ALBUM + " = " + TABLE_ALBUMS + "." + COLUMN_ALBUMS_ID +
+                    " WHERE " + TABLE_SONGS + "." + COLUMN_SONGS_TITLE + " LIKE UPPER(\"";
+    public static final String QUERY_ARTISTS_BY_SONG_NAME_SORT =
+            " ORDER BY " + TABLE_ARTISTS + "." + COLUMN_ARTISTS_NAME +
+                    ", " + TABLE_ALBUMS + "." + COLUMN_ALBUMS_NAME + " COLLATE NOCASE ASC";
+
     private  Connection conn;
 
     public boolean open() {
@@ -155,6 +169,34 @@ public class DataSource {
 
         } catch (SQLException e) {
             System.out.println("Error processing request: " + e.getMessage());
+            return null;
+        }
+    }
+
+    public List<SongArtist> performerOfTheSong(String songTitle){
+
+        StringBuilder sb = new StringBuilder(QUERY_ARTISTS_BY_SONG_NAME_START);
+        sb.append(songTitle);
+        sb.append("\")");
+        sb.append(QUERY_ARTISTS_BY_SONG_NAME_SORT);
+
+        System.out.println("SQL Statement: " + sb);
+
+        try(Statement statement = conn.createStatement();
+            ResultSet rs = statement.executeQuery(sb.toString())) {
+
+            List<SongArtist> result = new ArrayList<>();
+            while (rs.next()){
+                SongArtist sa = new SongArtist();
+                sa.setArtistName(rs.getString(1));
+                sa.setAlbumName(rs.getString(2));
+                sa.setTrackNumber(rs.getInt(3));
+                result.add(sa);
+            }
+            return result;
+
+        } catch (SQLException e) {
+            System.out.println("Error: " + e.getMessage());
             return null;
         }
     }
