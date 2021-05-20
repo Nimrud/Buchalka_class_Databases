@@ -3,6 +3,7 @@ package m04_music_DB;
 import m04_music_DB.model.Album;
 import m04_music_DB.model.Artist;
 import m04_music_DB.model.DataSource;
+import m04_music_DB.model.SongArtist;
 
 import java.util.List;
 
@@ -32,6 +33,18 @@ public class Main {
         }
         for (Album album: artistsAlbums){
             System.out.println(album.getId() + ": " + album.getName());
+        }
+
+        System.out.println("===== Printing performer(s) of the song =====");
+        List<SongArtist> performersOfTheSong = dataSource.performerOfTheSong("Go your own way");
+        if (performersOfTheSong.isEmpty()){
+            System.out.println("No artists in database matches given song title");
+            return;
+        }
+        for (SongArtist sa: performersOfTheSong) {
+            System.out.println("Artist: " + sa.getArtistName() +
+                                ", album: " + sa.getAlbumName() +
+                                ", track #" + sa.getTrackNumber());
         }
 
         dataSource.close();
