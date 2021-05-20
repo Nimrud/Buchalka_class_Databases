@@ -37,6 +37,14 @@ public class DataSource {
     public static final int ORDER_BY_ASC = 2;
     public static final int ORDER_BY_DESC = 3;
 
+    public static final String QUERY_ALBUMS_BY_ARTIST_START =
+            "SELECT * FROM " + TABLE_ALBUMS + " INNER JOIN " + TABLE_ARTISTS +
+                    " ON " + TABLE_ALBUMS + "." + COLUMN_ALBUMS_ARTIST + " = " +
+                    TABLE_ARTISTS + "." + COLUMN_ARTISTS_ID +
+                    " WHERE " + TABLE_ARTISTS + "." + COLUMN_ARTISTS_NAME + " = \"";
+    public static final String QUERY_ALBUMS_BY_ARTIST_SORT =
+            " ORDER BY " + TABLE_ALBUMS + "." + COLUMN_ALBUMS_NAME + " COLLATE NOCASE ";
+
     private  Connection conn;
 
     public boolean open() {
@@ -110,6 +118,44 @@ public class DataSource {
             } catch (SQLException e){
                 System.out.println("Couldn't close the statement: " + e.getMessage());
             }
+        }
+    }
+
+    public List<Album> queryAlbums(String artistName, int sortOrder) {
+
+        StringBuilder sb = new StringBuilder(QUERY_ALBUMS_BY_ARTIST_START);
+        sb.append(artistName);
+        sb.append("\" ");
+        if (sortOrder != ORDER_BY_NONE) {
+            sb.append(QUERY_ALBUMS_BY_ARTIST_SORT);
+            if (sortOrder == ORDER_BY_DESC) {
+                sb.append("DESC");
+            } else {
+                sb.append("ASC");
+            }
+        }
+
+        // PRO-TIP:
+        // wydrukowanie całego zapytania SQL:
+        System.out.println("SQL Statement: " + sb);
+
+        // tym razem z użyciem try-with-resources:
+        try (Statement statement = conn.createStatement();
+            ResultSet rs = statement.executeQuery(sb.toString())) {
+
+            List<Album> albums = new ArrayList<>();
+
+            while (rs.next()) {
+                Album album = new Album();
+                album.setId(rs.getInt(COLUMN_ALBUMS_ID));
+                album.setName(rs.getString(COLUMN_ALBUMS_NAME));
+                albums.add(album);
+            }
+            return albums;
+
+        } catch (SQLException e) {
+            System.out.println("Error processing request: " + e.getMessage());
+            return null;
         }
     }
 }
