@@ -35,7 +35,9 @@ public class BasicCommands {
     // 7) WHERE [nagłówek] <> [wartość] -> nagłówek nie jest równy podanej wartości
 
     // SELECT przyjmuje też funkcje, np:
-    // SELECT count (*) FROM songs;
+    // SELECT COUNT(*) FROM songs;
+
+    // SELECT COUNT(*) AS count FROM songs -> w tabeli wynikowej nadajemy pierwszej kolumnie nazwę (count)
 
 
     public static void main(String[] args) {
