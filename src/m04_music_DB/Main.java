@@ -66,7 +66,10 @@ public class Main {
         // Donna" or 1=1 or "
 
         List<SongArtist> performerOfTheSongView = dataSource.performerOfTheSongView(title);
-        // kod jak u góry, gdy funkcja nie znajdzie pasującego rekordu (tu pomijam)
+        if (performerOfTheSongView.isEmpty()){
+            System.out.println("No artists in database matches given song title");
+            return;
+        }
         for (SongArtist sa: performerOfTheSongView) {
             System.out.println("Artist: " + sa.getArtistName() +
                     ", album: " + sa.getAlbumName() +
