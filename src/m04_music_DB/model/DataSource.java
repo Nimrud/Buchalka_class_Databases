@@ -79,12 +79,22 @@ public class DataSource {
             COLUMN_SONGS_ALBUM + ", " + COLUMN_SONGS_TRACK + " FROM " +
             TABLE_ARTISTS_SONGS_VIEW + " WHERE " + COLUMN_SONGS_TITLE + " = \"";
 
+    // Unikamy SQL Injection przez użycie PreparedStatement
+    // całe zapytanie jest prawie takie samo, ale zmienną zastępujemy ? (bez cudzysłowu)
+    public static final String QUERY_VIEW_SONG_INFO_PREP = "SELECT " + COLUMN_ARTISTS_NAME + ", " +
+            COLUMN_SONGS_ALBUM + ", " + COLUMN_SONGS_TRACK + " FROM " +
+            TABLE_ARTISTS_SONGS_VIEW + " WHERE " + COLUMN_SONGS_TITLE + " = ?";
+    // następnie deklarujemy dla niego zmienną:
+    private PreparedStatement querySongView;
+    // i tworzymy jej instancję np. w metodzie open() -> metoda prepareStatement() na połączeniu
+    // na koniec w metodzie close() zamykamy zmienną
 
     private  Connection conn;
 
     public boolean open() {
         try {
             conn = DriverManager.getConnection(CONNECTION_STRING);
+            querySongView = conn.prepareStatement(QUERY_VIEW_SONG_INFO_PREP);
             return true;
         } catch (SQLException e) {
             System.out.println("Couldn't open database: " + e.getMessage());
@@ -94,6 +104,9 @@ public class DataSource {
 
     public void close() {
         try {
+            if (querySongView != null) {
+                querySongView.close();
+            }
             if (conn != null) {
                 conn.close();
             }
@@ -216,14 +229,12 @@ public class DataSource {
 
     // Wyszukiwanie wykonawców piosenki (jak wyżej), ale z wykorzystaniem Widoku:
     public List<SongArtist> performerOfTheSongView(String title) {
-        StringBuilder sb = new StringBuilder(QUERY_VIEW_SONG_INFO);
-        sb.append(title);
-        sb.append("\"");
 
-        System.out.println("SQL: " + sb);
-
-        try(Statement statement = conn.createStatement();
-            ResultSet rs = statement.executeQuery(sb.toString())) {
+        // korzystamy z PreparedStatement (querySongView):
+        try {
+            querySongView.setString(1, title);
+            // powyżej podajemy pozycję(kolejność) znaku zapytania z SQL (może być więcej niż jeden '?')
+            ResultSet rs = querySongView.executeQuery();
 
             return resultSetProcessing(rs);
 
