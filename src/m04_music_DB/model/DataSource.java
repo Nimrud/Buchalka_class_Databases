@@ -59,6 +59,24 @@ public class DataSource {
             " ORDER BY " + TABLE_ARTISTS + "." + COLUMN_ARTISTS_NAME +
                     ", " + TABLE_ALBUMS + "." + COLUMN_ALBUMS_NAME + " COLLATE NOCASE ASC";
 
+    public static final String TABLE_ARTISTS_SONGS_VIEW = "artists_list";
+    public static final String CREATE_ARTISTS_FOR_SONG_VIEW =
+            "CREATE VIEW IF NOT EXISTS " + TABLE_ARTISTS_SONGS_VIEW +
+                    " AS SELECT " + TABLE_ARTISTS + "." + COLUMN_ARTISTS_NAME + ", " +
+                    TABLE_ALBUMS + "." + COLUMN_ALBUMS_NAME + " AS album, " +
+                    TABLE_SONGS + "." + COLUMN_SONGS_TRACK + ", " +
+                    TABLE_SONGS + "." + COLUMN_SONGS_TITLE +
+                    " FROM " + TABLE_SONGS +
+                    " INNER JOIN " + TABLE_ALBUMS + " ON " +
+                    TABLE_SONGS + "." + COLUMN_SONGS_ALBUM + " = " + TABLE_ALBUMS + "." + COLUMN_ALBUMS_ID +
+                    " INNER JOIN " + TABLE_ARTISTS + " ON " +
+                    TABLE_ALBUMS + "." + COLUMN_ALBUMS_ARTIST + " = " + TABLE_ARTISTS + "." + COLUMN_ARTISTS_ID;
+    public static final String TABLE_ARTISTS_SONGS_VIEW_SORT =
+            " ORDER BY " + TABLE_ARTISTS + "." + COLUMN_ARTISTS_NAME + ", " +
+                    TABLE_ALBUMS + "." + COLUMN_ALBUMS_NAME + ", " +
+                    TABLE_SONGS + "." + COLUMN_SONGS_TRACK;
+
+
     private  Connection conn;
 
     public boolean open() {
@@ -216,6 +234,38 @@ public class DataSource {
             }
         } catch (SQLException e) {
             System.out.println("Query failed: " + e.getMessage());
+        }
+    }
+
+    // Pozyskanie informacji z funkcji, na przykładzie count()
+    public int getCount(String table) {
+        String sql = "SELECT COUNT(*) AS count, MIN(_id) AS min_id FROM " + table;
+
+        try(Statement statement = conn.createStatement();
+            ResultSet rs = statement.executeQuery(sql)) {
+
+            int count = rs.getInt("count");   // zamiast indeksu kolumny stosujemy jej nazwę, nadaną w zapytaniu SQL
+            int min = rs.getInt("min_id");
+            System.out.format("Count: %d, Min_id: %d\n", count, min);
+            return count;
+
+        } catch (SQLException e) {
+            System.out.println("Query failed: " + e.getMessage());
+            return -1;
+        }
+    }
+
+    // Tworzenie Widoku:
+    public boolean createViewForSongArtists() {
+        String sql = CREATE_ARTISTS_FOR_SONG_VIEW + TABLE_ARTISTS_SONGS_VIEW_SORT;
+        System.out.println(sql);
+
+        try(Statement statement = conn.createStatement()) {
+            statement.execute(sql);
+            return true;
+        } catch (SQLException e) {
+            System.out.println("Create View failed: " + e.getMessage());
+            return false;
         }
     }
 }

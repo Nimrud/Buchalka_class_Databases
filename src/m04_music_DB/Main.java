@@ -50,6 +50,13 @@ public class Main {
         System.out.println("\n===== Table MetaData =====");
         dataSource.querySongsMetaData();
 
+        System.out.println("\n===== Retrieving function result =====");
+        int numberOfSongs = dataSource.getCount(DataSource.TABLE_SONGS);
+        System.out.println("Number of songs in database: " + numberOfSongs);
+
+        System.out.println("\n===== Creating View =====");
+        dataSource.createViewForSongArtists();
+
         dataSource.close();
     }
 }
