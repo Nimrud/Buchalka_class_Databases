@@ -75,6 +75,9 @@ public class DataSource {
             " ORDER BY " + TABLE_ARTISTS + "." + COLUMN_ARTISTS_NAME + ", " +
                     TABLE_ALBUMS + "." + COLUMN_ALBUMS_NAME + ", " +
                     TABLE_SONGS + "." + COLUMN_SONGS_TRACK;
+    public static final String QUERY_VIEW_SONG_INFO = "SELECT " + COLUMN_ARTISTS_NAME + ", " +
+            COLUMN_SONGS_ALBUM + ", " + COLUMN_SONGS_TRACK + " FROM " +
+            TABLE_ARTISTS_SONGS_VIEW + " WHERE " + COLUMN_SONGS_TITLE + " = \"";
 
 
     private  Connection conn;
@@ -203,20 +206,43 @@ public class DataSource {
         try(Statement statement = conn.createStatement();
             ResultSet rs = statement.executeQuery(sb.toString())) {
 
-            List<SongArtist> result = new ArrayList<>();
-            while (rs.next()){
-                SongArtist sa = new SongArtist();
-                sa.setArtistName(rs.getString(1));
-                sa.setAlbumName(rs.getString(2));
-                sa.setTrackNumber(rs.getInt(3));
-                result.add(sa);
-            }
-            return result;
+            return resultSetProcessing(rs);
 
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
             return null;
         }
+    }
+
+    // Wyszukiwanie wykonawców piosenki (jak wyżej), ale z wykorzystaniem Widoku:
+    public List<SongArtist> performerOfTheSongView(String title) {
+        StringBuilder sb = new StringBuilder(QUERY_VIEW_SONG_INFO);
+        sb.append(title);
+        sb.append("\"");
+
+        System.out.println("SQL: " + sb);
+
+        try(Statement statement = conn.createStatement();
+            ResultSet rs = statement.executeQuery(sb.toString())) {
+
+            return resultSetProcessing(rs);
+
+        } catch (SQLException e) {
+            System.out.println("Query failed: " + e.getMessage());
+            return null;
+        }
+    }
+
+    public List<SongArtist> resultSetProcessing(ResultSet rs) throws SQLException {
+        List<SongArtist> result = new ArrayList<>();
+        while (rs.next()){
+            SongArtist sa = new SongArtist();
+            sa.setArtistName(rs.getString(1));
+            sa.setAlbumName(rs.getString(2));
+            sa.setTrackNumber(rs.getInt(3));
+            result.add(sa);
+        }
+        return result;
     }
 
     // Pozyskiwanie wiadomości o tabelach z bazy danych za pomocą metadanych:

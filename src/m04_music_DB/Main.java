@@ -6,6 +6,7 @@ import m04_music_DB.model.DataSource;
 import m04_music_DB.model.SongArtist;
 
 import java.util.List;
+import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
@@ -56,6 +57,21 @@ public class Main {
 
         System.out.println("\n===== Creating View =====");
         dataSource.createViewForSongArtists();
+
+        System.out.println("\n===== Printing performer(s) of the song (using VIEW) =====");
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Enter song title: ");
+        String title = scanner.nextLine();
+        // przykład SQL Injection:
+        // Donna" or 1=1 or "
+
+        List<SongArtist> performerOfTheSongView = dataSource.performerOfTheSongView(title);
+        // kod jak u góry, gdy funkcja nie znajdzie pasującego rekordu (tu pomijam)
+        for (SongArtist sa: performerOfTheSongView) {
+            System.out.println("Artist: " + sa.getArtistName() +
+                    ", album: " + sa.getAlbumName() +
+                    ", track #" + sa.getTrackNumber());
+        }
 
         dataSource.close();
     }
