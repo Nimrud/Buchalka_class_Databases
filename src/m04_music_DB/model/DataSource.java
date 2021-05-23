@@ -89,12 +89,37 @@ public class DataSource {
     // i tworzymy jej instancję np. w metodzie open() -> metoda prepareStatement() na połączeniu
     // na koniec w metodzie close() zamykamy zmienną
 
+    public static final String INSERT_ARTIST = "INSERT INTO " + TABLE_ARTISTS +
+            "(" + COLUMN_ARTISTS_NAME + ") VALUES(?)";
+    public static final String INSERT_ALBUM = "INSERT INTO " + TABLE_ALBUMS +
+            "(" + COLUMN_ALBUMS_NAME + ", " + COLUMN_ALBUMS_ARTIST + ") VALUES(?, ?)";
+    public static final String INSERT_SONG = "INSERT INTO " + TABLE_SONGS +
+            "(" + COLUMN_SONGS_TRACK + ", " + COLUMN_SONGS_TITLE + ", " +
+            COLUMN_SONGS_ALBUM + ") VALUES(?, ?, ?)";
+
+    public static final String QUERY_ARTIST = "SELECT " + COLUMN_ARTISTS_ID +
+            " FROM " + TABLE_ARTISTS + " WHERE " + COLUMN_ARTISTS_NAME + " = ?";
+    public static final String  QUERY_ALBUMS = "SELECT " + COLUMN_ALBUMS_ID +
+            " FROM " + TABLE_ALBUMS + " WHERE " + COLUMN_ALBUMS_NAME + " = ?";
+
+    private PreparedStatement insertIntoArtists;
+    private PreparedStatement insertIntoAlbums;
+    private PreparedStatement insertIntoSongs;
+
+    private PreparedStatement queryArtists;
+    private PreparedStatement queryAlbums;
+
     private  Connection conn;
 
     public boolean open() {
         try {
             conn = DriverManager.getConnection(CONNECTION_STRING);
             querySongView = conn.prepareStatement(QUERY_VIEW_SONG_INFO_PREP);
+            insertIntoArtists = conn.prepareStatement(INSERT_ARTIST, Statement.RETURN_GENERATED_KEYS);
+            insertIntoAlbums = conn.prepareStatement(INSERT_ALBUM, Statement.RETURN_GENERATED_KEYS);
+            insertIntoSongs = conn.prepareStatement(INSERT_SONG);
+            queryArtists = conn.prepareStatement(QUERY_ARTIST);
+            queryAlbums = conn.prepareStatement(QUERY_ALBUMS);
             return true;
         } catch (SQLException e) {
             System.out.println("Couldn't open database: " + e.getMessage());
@@ -106,6 +131,21 @@ public class DataSource {
         try {
             if (querySongView != null) {
                 querySongView.close();
+            }
+            if (insertIntoArtists != null) {
+                insertIntoArtists.close();
+            }
+            if (insertIntoAlbums != null) {
+                insertIntoAlbums.close();
+            }
+            if (insertIntoSongs != null) {
+                insertIntoSongs.close();
+            }
+            if (queryArtists != null) {
+                queryArtists.close();
+            }
+            if (queryAlbums != null) {
+                queryAlbums.close();
             }
             if (conn != null) {
                 conn.close();
