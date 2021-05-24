@@ -101,6 +101,8 @@ public class DataSource {
             " FROM " + TABLE_ARTISTS + " WHERE " + COLUMN_ARTISTS_NAME + " = ?";
     public static final String  QUERY_ALBUMS = "SELECT " + COLUMN_ALBUMS_ID +
             " FROM " + TABLE_ALBUMS + " WHERE " + COLUMN_ALBUMS_NAME + " = ?";
+    public static final String QUERY_SONGS = "SELECT * FROM " +
+            TABLE_ARTISTS_SONGS_VIEW + " WHERE " + COLUMN_SONGS_TITLE + " = ? AND album = ? AND " + COLUMN_ARTISTS_NAME + " = ?";
 
     private PreparedStatement insertIntoArtists;
     private PreparedStatement insertIntoAlbums;
@@ -108,6 +110,7 @@ public class DataSource {
 
     private PreparedStatement queryArtists;
     private PreparedStatement queryAlbums;
+    private PreparedStatement querySongs;
 
     private  Connection conn;
 
@@ -120,6 +123,7 @@ public class DataSource {
             insertIntoSongs = conn.prepareStatement(INSERT_SONG);
             queryArtists = conn.prepareStatement(QUERY_ARTIST);
             queryAlbums = conn.prepareStatement(QUERY_ALBUMS);
+            querySongs = conn.prepareStatement(QUERY_SONGS);
             return true;
         } catch (SQLException e) {
             System.out.println("Couldn't open database: " + e.getMessage());
@@ -146,6 +150,9 @@ public class DataSource {
             }
             if (queryAlbums != null) {
                 queryAlbums.close();
+            }
+            if (querySongs != null) {
+                querySongs.close();
             }
             if (conn != null) {
                 conn.close();
@@ -343,6 +350,115 @@ public class DataSource {
         } catch (SQLException e) {
             System.out.println("Create View failed: " + e.getMessage());
             return false;
+        }
+    }
+
+    // metoda prywatna, bo dostępna jedynie przez insertSong()
+    private int insertArtist(String name) throws SQLException {
+        queryArtists.setString(1, name);
+        ResultSet rs = queryArtists.executeQuery();
+
+        if (rs.next()) {        // jeśli artysta jest już w bazie, to ta metoda zwróci true
+            return rs.getInt(1);   // a ta zwróci jego _id
+        } else {
+            // zapisujemy nowego artystę
+            insertIntoArtists.setString(1, name);
+            int rowsAffected = insertIntoArtists.executeUpdate();
+            // nie używamy metody execute(), bo ona zwraca booleana
+
+            // jeśli z jakiegoś względu zapis się nie uda:
+            if (rowsAffected != 1) {
+                throw new SQLException("Couldn't insert artist!");
+            }
+
+            // pozyskanie _id nowego artysty:
+            ResultSet generatedKey = insertIntoArtists.getGeneratedKeys();
+            if (generatedKey.next()) {
+                return generatedKey.getInt(1);
+            } else {
+                throw new SQLException("Couldn't get _id for artist");
+            }
+        }
+    }
+
+    // metoda prywatna, bo dostępna jedynie przez insertSong()
+    private int insertAlbum(String name, int artistId) throws SQLException {
+        queryAlbums.setString(1, name);
+        ResultSet rs = queryAlbums.executeQuery();
+
+        if (rs.next()) {
+            return rs.getInt(1);
+        } else {
+            insertIntoAlbums.setString(1, name);
+            insertIntoAlbums.setInt(2, artistId);
+            int rowsAffected = insertIntoAlbums.executeUpdate();
+
+            if (rowsAffected != 1) {
+                throw new SQLException("Couldn't insert album!");
+            }
+
+            ResultSet generatedKey = insertIntoArtists.getGeneratedKeys();
+            if (generatedKey.next()) {
+                return generatedKey.getInt(1);
+            } else {
+                throw new SQLException("Couldn't get _id for album");
+            }
+        }
+    }
+
+    public void insertSong(String title, String artist, String album, int track) throws SQLException {
+        System.out.println("Song: " + title + ", artist: " + artist + ", album: " + album);
+
+        // dodajemy parametry parametry funkcji do zapytania SQL (z PreparedStatement):
+        querySongs.setString(1, title);
+        querySongs.setString(2, album);
+        querySongs.setString(3, artist);
+
+        ResultSet rs = querySongs.executeQuery();
+
+        // sprawdzamy, czy piosenki nie ma już w bazie:
+        if(rs.next()) {
+            System.out.println("This song is already in DB");
+            return;
+        } else {
+            // jeśli piosenki nie ma w DB, to ją dodajemy, w transakcji:
+            try {
+                conn.setAutoCommit(false);    // rozpoczynamy transakcję przez wyłączenie auto-commit
+                // transakcja obejmuje metody: insertSong(), insertAlbum(), insertArtist()
+                // insertAlbum(), insertArtist() są dostępne tylko z niniejszej metody (modyfikator private)
+
+                int artistId = insertArtist(artist);
+                int albumId = insertAlbum(album, artistId);
+
+                insertIntoSongs.setInt(1, track);
+                insertIntoSongs.setString(2, title);
+                insertIntoSongs.setInt(3, albumId);
+
+                int rowsAffected = insertIntoSongs.executeUpdate();
+
+                if (rowsAffected == 1) {
+                    conn.commit();         // kończymy tu transakcję - przez zapis do BD
+                    System.out.println("New song added: \"" + title + "\" of " + artist + " (album: " + album + ")");
+                } else {
+                    throw new SQLException("Song insert failed!");
+                }
+
+            } catch (Exception e) {
+                System.out.println("Song insert exception: " + e.getMessage());
+                try {
+                    System.out.println("Performing rollback");
+                    conn.rollback();         // rollback, jeśli zapis transakcji się nie powiedzie
+                } catch (SQLException e2) {
+                    System.out.println("Rollback failed: " + e2.getMessage());
+                }
+            } finally {
+                try {
+                    System.out.println("Resetting default commit behavior");
+                    conn.setAutoCommit(true);
+                } catch (SQLException e3) {
+                    System.out.println("AutoCommit On failed: " + e3.getMessage());
+                }
+            }
         }
     }
 }

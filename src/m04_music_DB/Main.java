@@ -5,6 +5,7 @@ import m04_music_DB.model.Artist;
 import m04_music_DB.model.DataSource;
 import m04_music_DB.model.SongArtist;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Scanner;
 
@@ -58,22 +59,29 @@ public class Main {
         System.out.println("\n===== Creating View =====");
         dataSource.createViewForSongArtists();
 
-        System.out.println("\n===== Printing performer(s) of the song (using VIEW) =====");
-        Scanner scanner = new Scanner(System.in);
-        System.out.print("Enter song title: ");
-        String title = scanner.nextLine();
-        // przykład SQL Injection:
-        // Donna" or 1=1 or "
+//        System.out.println("\n===== Printing performer(s) of the song (using VIEW) =====");
+//        Scanner scanner = new Scanner(System.in);
+//        System.out.print("Enter song title: ");
+//        String title = scanner.nextLine();
+//        // przykład SQL Injection:
+//        // Donna" or 1=1 or "
+//
+//        List<SongArtist> performerOfTheSongView = dataSource.performerOfTheSongView(title);
+//        if (performerOfTheSongView.isEmpty()){
+//            System.out.println("No artists in database matches given song title");
+//            return;
+//        }
+//        for (SongArtist sa: performerOfTheSongView) {
+//            System.out.println("Artist: " + sa.getArtistName() +
+//                    ", album: " + sa.getAlbumName() +
+//                    ", track #" + sa.getTrackNumber());
+//        }
 
-        List<SongArtist> performerOfTheSongView = dataSource.performerOfTheSongView(title);
-        if (performerOfTheSongView.isEmpty()){
-            System.out.println("No artists in database matches given song title");
-            return;
-        }
-        for (SongArtist sa: performerOfTheSongView) {
-            System.out.println("Artist: " + sa.getArtistName() +
-                    ", album: " + sa.getAlbumName() +
-                    ", track #" + sa.getTrackNumber());
+        System.out.println("\n===== Adding new song/album/artist =====");
+        try {
+            dataSource.insertSong("My Apocalypse", "Metallica", "Death Magnetic", 1);
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
         }
 
         dataSource.close();
